@@ -16,7 +16,7 @@ def hashFunction(input):
 
 def getHashVal():
 	message = socks.recv(1024)  
-	#print (message.decode('ASCII'))
+	message = message.decode('ASCII')
 	return message
 
 def sendData(data):
@@ -28,11 +28,10 @@ def main():
 	#Maybe make a login/registration part?
 
 	uname = raw_input("Enter your username")
-	pass = raw_input("Enter your password")
+	passw = raw_input("Enter your password")
 	serverVal = getHashVal()
-	finalHashVal = hashFunction(serverVal + pass)
 
-	send(uname)
-	send(finalHashVal)
-	
-	
+	finalHashVal = hashFunction(serverVal + passw)
+
+	send((uname,finalHashVal))
+
