@@ -1,37 +1,46 @@
-'''
- The client is receving a random hashed value from the server & combining it with the password the user enters.
- Then, that is being sent to the server. If it matches the value that the server gets, then the authentication is valid.
-'''
+import socket, sys
+import hashlib
+import pickle
 
-import socket, sys, time
-from Crypto.Cipher import AES
-
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server_address = ('127.0.0.1', 8000)
-
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+print ('Socket created')
+ 
+host = 'localhost'
+port = 8000
+s.connect((host , port))
 
 def hashFunction(input):
-	''' Used to return a hash value of the password & the password+serverVal '''
-	return hash(input)
+	''' Used to return a hash value of the password+serverVal to be sent to the server'''
+	h = hashlib.md5(input.encode())
+	return h.hexdigest()
 
-def getHashVal():
-	message = socks.recv(1024)  
-	message = message.decode('ASCII')
-	return message
-
-def sendData(data):
-	sock.send(data + "\n")
-	return
-
+def send_val(data):
+	''' Used to send data to the server ''' 
+	try:
+		s.sendall(data.encode("ASCII"))
+	except socket.error:
+		print ('Send failed')
+		sys.exit()
 def main():
-	server.connect(server_address)
-	#Maybe make a login/registration part?
-
-	uname = raw_input("Enter your username")
-	passw = raw_input("Enter your password")
-	serverVal = getHashVal()
-
-	finalHashVal = hashFunction(serverVal + passw)
-
-	send((uname,finalHashVal))
-
+	''' The main driver of the program. It sends and receives data to the server in order to perform the authentication. '''
+	username = input("Please enter your username")
+	password = input("Please enter your password")
+	
+	while True:
+		initiateLogin = "login"
+		send_val(initiateLogin)
+		reply = s.recv(1024)
+		value_to_hash = password + reply.decode("ASCII")
+		hashed_val = hashFunction(value_to_hash)
+		print(hashed_val)
+		send_val(hashed_val)
+		reply = s.recv(1024)
+		reply = pickle.loads(reply)
+		
+		if reply[1] == 1 or reply[1] == 2:
+			print(reply[0])
+			break
+		else:
+			print (reply[0]) 
+			
+main()

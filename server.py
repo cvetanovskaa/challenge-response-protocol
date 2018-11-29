@@ -1,12 +1,17 @@
-import socket
-import sqlite3
+import socket, sqlite3
+import hashlib
+import pickle
 
 HOST, PORT = 'localhost', 8000
 
 listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 listen_socket.bind((HOST, PORT))
+listen_socket.listen(5)
 
+print ('serving HTTP on port ', PORT)
+
+#Dummy data
 unames = [("subedir", "berea2015"), ("karkig", "berea2016"), ("scottw", "college201"),("alex", "berea2018"), ("vasant","berea2010"),
  ("peter", "berea2011"), ("ronaldo", "realmadrid"), ("messi", "barcelona"), ("neymar", "psg2017")]
 
@@ -36,14 +41,20 @@ def create_table(conn, query):
 		print(e)
 
 def add_user(db, username, password):
+	''' Inputs the dummy data into the db '''
 	conn = create_connection(db)
 	cursor = conn.cursor()
 	for uname in unames:
 		cursor.execute('insert into usernames (username, password) values (?, ?)', (uname[0], uname[1],))
-#		cursor.execute('insert into usernames (name, password) values (?, ?)', (username, password,))
 	conn.commit() 	
 
+def hashFunction(input):
+	''' Used to return a hash value of the password+serverVal to compare with user's value '''
+	h = hashlib.md5(password.encode())
+	return h.hexdigest()
+
 def main():
+	''' Main driver of the program. Creates a db connection, and send and receives data from the user. '''
 
 	db = "users.db"
 	conn = create_connection(db)
@@ -56,13 +67,40 @@ def main():
 	
 	if conn is not None:
 		create_table(conn, sql_query)
-#		add_user(db, "","")
+		add_user(db, "","")
 	else:
 		print("Error! cannot create the database connection.")
 
+
+	client_connection, client_address = listen_socket.accept()
+	tries = 0
 	while True:
-		
-	
-		
+		request = client_connection.recv(1024)
+		if request.decode("ASCII") == "login":
+			random_str = "ASDSAD"
+			client_connection.sendall(random_str.encode("ASCII"))
+			request = ""
+			while True:
+				request = client_connection.recv(1024)
+				break
+			#ADD RAJ'S PART
+			hash_val = "" 
+
+			if hash_val == request:
+				result = pickle.dumps(("You have been authenticated.", 1))
+				client_connection.sendall(result)
+				client_connection.close()
+				break
+			else:
+				tries += 1
+				if tries == 10:
+					result = pickle.dumps(("You have exceeded the limit of tries. Please try again later.", 2))
+				else:
+					result = pickle.dumps(("Sorry, the username and password don't match. Please try again.", 0))
+
+				client_connection.sendall(result)
+
+					
 main()
+
 
