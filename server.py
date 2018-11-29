@@ -59,7 +59,7 @@ def add_user(db, username, password):
 
 def hashFunction(input):
 	''' Used to return a hash value of the password+serverVal to compare with user's value '''
-	h = hashlib.md5(password.encode())
+	h = hashlib.md5(input.encode())
 	return h.hexdigest()
 
 def main():
@@ -89,29 +89,27 @@ def main():
 		request = client_connection.recv(1024)
 		request = pickle.loads(request)
 		username  = request[1]
-		print(username)
 		if request[0] == "login":
 			random_str = create_random_str(16)
 			client_connection.sendall(random_str.encode("ASCII"))
 			request = ""
 
 			while True:
-				request = client_connection.recv(1024)
+				request = client_connection.recv(1024).decode("ASCII")
 				break
 
-			#ADD RAJ'S PART
-			
-			# I made the username a global variable (from the input) so when user/client put their username its going to check for the 
-			#password in the database then it going to add to hashed values 
-			#I couldnot test it multiple times  because it keep saying address already in use
-			
-			password_query= ("""SELECT password FROM user.db WHERE usernames =?""", username)
-			print(password_query)
-			hash_val = "" + password_query
-			print(hash_val)
+			c = conn.cursor()
+			c.execute('SELECT password FROM usernames WHERE username = ?', (username, ) )
+			passw = ""
+			try:
+				passw = c.fetchone()[0]
+			except:
+				print ("That account does not exist. Please try again")
+				break
 
-# 			hash_val = "" 
-
+			hash_val = passw + random_str
+			hash_val = hashFunction(hash_val)
+			print(" H ", hash_val, " ", request)
 			if hash_val == request:
 				result = pickle.dumps(("You have been authenticated.", 1))
 				client_connection.sendall(result)
