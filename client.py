@@ -23,8 +23,8 @@ def send_val(data):
 		sys.exit()
 def main():
 	''' The main driver of the program. It sends and receives data to the server in order to perform the authentication. '''
-	username = input("Please enter your username")
-	password = input("Please enter your password")
+	username = input("Please enter your username: ")
+	password = input("Please enter your password: ")
 	
 	while True:
 		initiateLogin = "login"
@@ -36,11 +36,10 @@ def main():
 		send_val(hashed_val)
 		reply = s.recv(1024)
 		reply = pickle.loads(reply)
-		
 		if reply[1] == 1 or reply[1] == 2:
 			print(reply[0])
 			break
 		else:
 			print (reply[0]) 
-			
+
 main()

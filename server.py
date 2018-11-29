@@ -1,11 +1,10 @@
 import socket, sqlite3
 import hashlib
-import pickle
+import pickle, sys
 
-HOST, PORT = 'localhost', 8000
+HOST, PORT = '127.0.0.1', 8000
 
 listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 listen_socket.bind((HOST, PORT))
 listen_socket.listen(5)
 
@@ -46,7 +45,7 @@ def add_user(db, username, password):
 	cursor = conn.cursor()
 	for uname in unames:
 		cursor.execute('insert into usernames (username, password) values (?, ?)', (uname[0], uname[1],))
-	conn.commit() 	
+	conn.commit()
 
 def hashFunction(input):
 	''' Used to return a hash value of the password+serverVal to compare with user's value '''
@@ -64,12 +63,14 @@ def main():
 			username nvarchar(40) not null,
 			password nvarchar(32) not null
 		); """
-	
+
 	if conn is not None:
 		create_table(conn, sql_query)
-		add_user(db, "","")
+#		add_user(db, "","")
 	else:
-		print("Error! cannot create the database connection.")
+		print("Error! cannot create the database connection.") 
+
+	listen_socket.listen(1)
 
 
 	client_connection, client_address = listen_socket.accept()
@@ -99,8 +100,4 @@ def main():
 					result = pickle.dumps(("Sorry, the username and password don't match. Please try again.", 0))
 
 				client_connection.sendall(result)
-
-					
 main()
-
-
