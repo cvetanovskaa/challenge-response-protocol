@@ -28,7 +28,8 @@ def main():
 	
 	while True:
 		initiateLogin = "login"
-		send_val(initiateLogin)
+		data = pickle.dumps((initiateLogin,username)) 
+		s.sendall(data)
 		reply = s.recv(1024)
 		value_to_hash = password + reply.decode("ASCII")
 		hashed_val = hashFunction(value_to_hash)

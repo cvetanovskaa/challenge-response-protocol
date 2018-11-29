@@ -1,6 +1,7 @@
 import socket, sqlite3
 import hashlib
 import pickle, sys
+import random
 
 HOST, PORT = '127.0.0.1', 8000
 
@@ -13,6 +14,15 @@ print ('serving HTTP on port ', PORT)
 #Dummy data
 unames = [("subedir", "berea2015"), ("karkig", "berea2016"), ("scottw", "college201"),("alex", "berea2018"), ("vasant","berea2010"),
  ("peter", "berea2011"), ("ronaldo", "realmadrid"), ("messi", "barcelona"), ("neymar", "psg2017")]
+
+def create_random_str(length):
+	number = '0123456789'
+	alpha = 'abcdefghijklmnopqrstuvwxyz'
+	id = ''
+	for i in range(0,length,2):
+		id += random.choice(number)
+		id += random.choice(alpha)
+	return id
 
 def create_connection(db_file):
 	""" create a database connection to the SQLite database
@@ -77,13 +87,18 @@ def main():
 	tries = 0
 	while True:
 		request = client_connection.recv(1024)
-		if request.decode("ASCII") == "login":
-			random_str = "ASDSAD"
+		request = pickle.loads(request)
+		username  = request[1]
+		print(username)
+		if request[0] == "login":
+			random_str = create_random_str(16)
 			client_connection.sendall(random_str.encode("ASCII"))
 			request = ""
+
 			while True:
 				request = client_connection.recv(1024)
 				break
+
 			#ADD RAJ'S PART
 			hash_val = "" 
 
