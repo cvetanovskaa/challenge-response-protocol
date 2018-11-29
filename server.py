@@ -46,15 +46,26 @@ def create_table(conn, query):
 	try:
 		c = conn.cursor()
 		c.execute(query)
+
 	except Error as e:
 		print(e)
 
-def add_user(db, username, password):
+def dummy_data(db):
 	''' Inputs the dummy data into the db '''
 	conn = create_connection(db)
 	cursor = conn.cursor()
-	for uname in unames:
-		cursor.execute('insert into usernames (username, password) values (?, ?)', (uname[0], uname[1],))
+	cursor.execute("SELECT * FROM usernames")
+	row = cursor.fetchone()
+	if row == None:
+		for uname in unames:
+			cursor.execute('insert into usernames (username, password) values (?, ?)', (uname[0], hashFunction(uname[1]),))
+		conn.commit()
+
+def add_user(db, username, password):
+	''' Adds a registered user into the db '''
+	conn = create_connection(db)
+	cursor = conn.cursor()
+	cursor.execute('insert into usernames (username, password) values (?, ?)', (username, password,))
 	conn.commit()
 
 def hashFunction(input):
@@ -64,7 +75,6 @@ def hashFunction(input):
 
 def main():
 	''' Main driver of the program. Creates a db connection, and send and receives data from the user. '''
-
 	db = "users.db"
 	conn = create_connection(db)
 
@@ -76,19 +86,19 @@ def main():
 
 	if conn is not None:
 		create_table(conn, sql_query)
-#		add_user(db, "","")
 	else:
 		print("Error! cannot create the database connection.") 
 
 	listen_socket.listen(1)
-
-
+	print("Waiting for a connection..")
+	dummy_data(db)
 	client_connection, client_address = listen_socket.accept()
 	tries = 0
 	while True:
 		request = client_connection.recv(1024)
 		request = pickle.loads(request)
 		username  = request[1]
+
 		if request[0] == "login":
 			random_str = create_random_str(16)
 			client_connection.sendall(random_str.encode("ASCII"))
@@ -101,26 +111,35 @@ def main():
 			c = conn.cursor()
 			c.execute('SELECT password FROM usernames WHERE username = ?', (username, ) )
 			passw = ""
+			account_flag = 0
 			try:
 				passw = c.fetchone()[0]
 			except:
-				print ("That account does not exist. Please try again")
-				break
+				pass
 
+			account_flag = 1	
 			hash_val = passw + random_str
-			hash_val = hashFunction(hash_val)
-			print(" H ", hash_val, " ", request)
+			hash_val = hashFunction(hash_val)	
+
 			if hash_val == request:
 				result = pickle.dumps(("You have been authenticated.", 1))
 				client_connection.sendall(result)
 				client_connection.close()
 				break
 			else:
+				if account_flag == 1:
+					result = pickle.dumps(("That account does not exist. Please try again.", 0))
+				
 				tries += 1
 				if tries == 10:
 					result = pickle.dumps(("You have exceeded the limit of tries. Please try again later.", 2))
 				else:
 					result = pickle.dumps(("Sorry, the username and password don't match. Please try again.", 0))
-
 				client_connection.sendall(result)
+
+		elif request[0] == "register":
+			add_user(db, request[1], request[2])
+			response = "User has been created."
+			client_connection.sendall(response.encode("ASCII"))
+
 main()
