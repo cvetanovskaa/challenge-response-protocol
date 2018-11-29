@@ -1,6 +1,7 @@
 import socket, sys
 import hashlib
 import pickle
+import getpass
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 print ('Socket created')
@@ -42,7 +43,8 @@ def main():
 			break
 
 		username = input("Please enter your username: ")
-		password = input("Please enter your password: ")
+#		password = input("Please enter your password: ")
+		password = getpass.getpass()
 	
 		if initiateLogin == "login":
 			data = pickle.dumps((initiateLogin,username)) 
@@ -61,7 +63,6 @@ def main():
  
 		else:
 			hashed_pass = hashFunction(password)
-			print("HERE")
 			data = pickle.dumps((initiateLogin, username, hashed_pass))
 			s.sendall(data)
 			reply = s.recv(1024)
