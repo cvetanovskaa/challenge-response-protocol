@@ -85,7 +85,17 @@ def main():
 				request = client_connection.recv(1024)
 				break
 			#ADD RAJ'S PART
-			hash_val = "" 
+			
+			# I made the username a global variable (from the input) so when user/client put their username its going to check for the 
+			#password in the database then it going to add to hashed values 
+			#I couldnot test it multiple times  because it keep saying address already in use
+			
+			password_query= ("""SELECT password FROM user.db WHERE usernames =?""", username)
+			print(password_query)
+			hash_val = "" + password_query
+			print(hash_val)
+
+# 			hash_val = "" 
 
 			if hash_val == request:
 				result = pickle.dumps(("You have been authenticated.", 1))
