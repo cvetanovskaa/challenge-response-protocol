@@ -4,11 +4,20 @@
 one party [the server] presents a question i.e. a challenge, and the other party [the client]  must provide a valid answer i.e.
 the response, in order to be authenticated.
 
-## Getting started
+## Getting started:
 
 	1. Open two terminals - 1 for the server & 1 for the client
 	2. After running the client choose whether you want to login or register
 	3. Enter username & password
+## The Result:
+	1. If the username match with the password then user will able to login
+	2. If the username and password doesnot matched then it won't login and program ended to try again.
+
+## Libraries we used: 
+	1.import socket, sqlite3
+	2.import hashlib
+	3.import pickle, sys
+	4.import random
 
 ## Authors
 
